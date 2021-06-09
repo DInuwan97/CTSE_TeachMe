@@ -1,16 +1,15 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
-import 'package:firebase_core/firebase_core.dart';
-import 'package:rflutter_alert/rflutter_alert.dart';
 import 'package:teachme/Models/Teacher.dart';
 
-class AddTeacher extends StatefulWidget {
-  const AddTeacher({Key key}) : super(key: key);
+class UpdateTeacher extends StatefulWidget {
+  const UpdateTeacher({Key key}) : super(key: key);
+
   @override
-  _AddTeacherState createState() => _AddTeacherState();
+  _UpdateTeacherState createState() => _UpdateTeacherState();
 }
 
-class _AddTeacherState extends State<AddTeacher> {
+class _UpdateTeacherState extends State<UpdateTeacher> {
   String dropdownValue = 'Combined Mathematics';
   final TextEditingController _controllerTeacherfName = TextEditingController();
   final TextEditingController _controllerTeacherlName = TextEditingController();
@@ -36,92 +35,56 @@ class _AddTeacherState extends State<AddTeacher> {
           'subject': subject
         });
       });
-    } catch (e) {
-      print('Failed');
-      print(teacher.toJson());
-      print(e.toString());
-    }
+    } catch (e) {}
   }
 
-  getAllTeachers() {
-    return FirebaseFirestore.instance
-        .collection(fireStoreCollectionName)
-        .snapshots();
-  }
-
-  addNewTeacher() async {
-    print('Button Clicked');
-    Teacher teacher = new Teacher(
-        firstName: _controllerTeacherfName.text..toString(),
-        lastName: _controllerTeacherlName.text.toString(),
-        email: _controllerTeacherEmail.text.toString(),
-        subject: dropdownValue);
-
-    try {
-      // await firestore
-      //     .collection(fireStoreCollectionName)
-      //     .doc()
-      //     .set(teacher.toJson());
-      // FirebaseFirestore.instance.runTransaction((transaction) async {
-      await FirebaseFirestore.instance
-          .collection(fireStoreCollectionName)
-          .doc()
-          .set(teacher.toJson());
-
-      print('Success');
-      print(teacher.toJson());
-      successMessage();
-    } catch (e) {
-      print('Failed');
-      print(teacher.toJson());
-      print(e.toString());
-    }
-  }
-
-  updateIsEditing() {
-    if (isEditing) {
-      updateTeacher(currentTeacher, _controllerTeacherfName.text,
-          _controllerTeacherlName.text, _controllerTeacherEmail.text, "");
-    }
-  }
+  // updateIsEditing() {
+  //   if (isEditing) {
+  //     updateTeacher(currentTeacher, _controllerTeacherfName.text,
+  //         _controllerTeacherlName.text, _controllerTeacherEmail.text, "");
+  //   }
+  // }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+        appBar: AppBar(
+            title: Text('Update Details'),
+            backgroundColor: Colors.greenAccent[400]),
         body: Padding(
-      padding: const EdgeInsets.all(10.0),
-      child: Container(
-          height: 520,
-          width: MediaQuery.of(context).size.width,
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(10),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.grey.withOpacity(0.9),
-                spreadRadius: 5,
-                blurRadius: 7,
-                offset: Offset(0, 3),
-              ),
-            ],
-          ),
-          child: SingleChildScrollView(
-            child: Padding(
-              padding: const EdgeInsets.all(15.0),
-              child: Column(
-                children: <Widget>[
-                  _entryFiedTeacherFname('First Name'),
-                  _entryFiedTeacherLname('Last Name'),
-                  _entryFiedTeacherEmail('Email'),
-                  Align(
-                      alignment: Alignment.topLeft,
-                      child: _dropdownFieldSubject('Subject')),
-                  _createButton(),
+          padding: const EdgeInsets.all(10.0),
+          child: Container(
+              height: 520,
+              width: MediaQuery.of(context).size.width,
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(10),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.grey.withOpacity(0.9),
+                    spreadRadius: 5,
+                    blurRadius: 7,
+                    offset: Offset(0, 3),
+                  ),
                 ],
               ),
-            ),
-          )),
-    ));
+              child: SingleChildScrollView(
+                child: Padding(
+                  padding: const EdgeInsets.all(15.0),
+                  child: Column(
+                    children: <Widget>[
+                      _entryFiedTeacherFname('First Name'),
+                      _entryFiedTeacherLname('Last Name'),
+                      _entryFiedTeacherEmail('Email'),
+                      Align(
+                          alignment: Alignment.topLeft,
+                          child: _dropdownFieldSubject('Subject')),
+                      _createButton(),
+                    ],
+                  ),
+                ),
+              )),
+        ));
   }
 
   Widget _entryFiedTeacherFname(String title) {
@@ -243,7 +206,7 @@ class _AddTeacherState extends State<AddTeacher> {
       onTap: () {
         // Navigator.push(
         //     context, MaterialPageRoute(builder: (context) => HomeScreen()));
-        addNewTeacher();
+        // addNewTeacher();
       },
       child: Container(
         margin: EdgeInsets.symmetric(vertical: 35),
@@ -274,20 +237,20 @@ class _AddTeacherState extends State<AddTeacher> {
     );
   }
 
-  successMessage() {
-    return Alert(
-        context: context,
-        title: "Teacher Added",
-        type: AlertType.success,
-        content: Column(),
-        buttons: [
-          DialogButton(
-            onPressed: () => Navigator.pop(context),
-            child: Text(
-              "CLOSE",
-              style: TextStyle(color: Colors.white, fontSize: 20),
-            ),
-          )
-        ]).show();
-  }
+  // successMessage() {
+  //   return Alert(
+  //       context: context,
+  //       title: "Teacher Added",
+  //       type: AlertType.success,
+  //       content: Column(),
+  //       buttons: [
+  //         DialogButton(
+  //           onPressed: () => Navigator.pop(context),
+  //           child: Text(
+  //             "CLOSE",
+  //             style: TextStyle(color: Colors.white, fontSize: 20),
+  //           ),
+  //         )
+  //       ]).show();
+  // }
 }

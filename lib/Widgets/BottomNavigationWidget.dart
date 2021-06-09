@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:teachme/Screens/AddTeacher.dart';
 import 'package:teachme/Screens/Home.dart';
+import 'package:teachme/Screens/TeacherListScreen.dart';
 
 class BootomNavigationWidget extends StatefulWidget {
   @override
@@ -14,7 +15,7 @@ class _BootomNavigationWidgetState extends State<BootomNavigationWidget> {
   final List<Widget> _widgetOptions = <Widget>[
     Home(key: PageStorageKey('Page1')),
     AddTeacher(key: PageStorageKey('Page2')),
-    Home(key: PageStorageKey('Page3')),
+    TeacherListScreen(key: PageStorageKey('Page3')),
     Home(key: PageStorageKey('Page4'))
   ];
 
