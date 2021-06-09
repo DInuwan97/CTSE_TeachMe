@@ -1,9 +1,11 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
+import 'package:rflutter_alert/rflutter_alert.dart';
 import 'package:teachme/Models/Teacher.dart';
 
 class UpdateTeacher extends StatefulWidget {
-  const UpdateTeacher({Key key}) : super(key: key);
+  final Teacher teacher;
+  const UpdateTeacher(this.teacher, {Key key}) : super(key: key);
 
   @override
   _UpdateTeacherState createState() => _UpdateTeacherState();
@@ -35,18 +37,23 @@ class _UpdateTeacherState extends State<UpdateTeacher> {
           'subject': subject
         });
       });
-    } catch (e) {}
+      successMessage();
+    } catch (e) {
+      print('Fail to update');
+    }
   }
-
-  // updateIsEditing() {
-  //   if (isEditing) {
-  //     updateTeacher(currentTeacher, _controllerTeacherfName.text,
-  //         _controllerTeacherlName.text, _controllerTeacherEmail.text, "");
-  //   }
-  // }
 
   @override
   Widget build(BuildContext context) {
+    print(widget.teacher.firstName);
+
+    setState(() {
+      _controllerTeacherfName.text = widget.teacher.firstName;
+      _controllerTeacherlName.text = widget.teacher.lastName;
+      _controllerTeacherEmail.text = widget.teacher.email;
+      dropdownValue = widget.teacher.subject;
+    });
+
     return Scaffold(
         appBar: AppBar(
             title: Text('Update Details'),
@@ -204,9 +211,12 @@ class _UpdateTeacherState extends State<UpdateTeacher> {
   Widget _createButton() {
     return InkWell(
       onTap: () {
-        // Navigator.push(
-        //     context, MaterialPageRoute(builder: (context) => HomeScreen()));
-        // addNewTeacher();
+        updateTeacher(
+            currentTeacher,
+            _controllerTeacherfName.text,
+            _controllerTeacherlName.text,
+            _controllerTeacherEmail.text,
+            dropdownValue);
       },
       child: Container(
         margin: EdgeInsets.symmetric(vertical: 35),
@@ -230,27 +240,27 @@ class _UpdateTeacherState extends State<UpdateTeacher> {
                   Colors.greenAccent[400],
                 ])),
         child: Text(
-          'Add Teacher',
+          'Update Teacher',
           style: TextStyle(fontSize: 20, color: Colors.white),
         ),
       ),
     );
   }
 
-  // successMessage() {
-  //   return Alert(
-  //       context: context,
-  //       title: "Teacher Added",
-  //       type: AlertType.success,
-  //       content: Column(),
-  //       buttons: [
-  //         DialogButton(
-  //           onPressed: () => Navigator.pop(context),
-  //           child: Text(
-  //             "CLOSE",
-  //             style: TextStyle(color: Colors.white, fontSize: 20),
-  //           ),
-  //         )
-  //       ]).show();
-  // }
+  successMessage() {
+    return Alert(
+        context: context,
+        title: "Successfully Updated",
+        type: AlertType.success,
+        content: Column(),
+        buttons: [
+          DialogButton(
+            onPressed: () => Navigator.pop(context),
+            child: Text(
+              "CLOSE",
+              style: TextStyle(color: Colors.white, fontSize: 20),
+            ),
+          )
+        ]).show();
+  }
 }
