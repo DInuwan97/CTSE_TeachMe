@@ -24,19 +24,18 @@ class _MyAppState extends State<MyApp> {
             seconds: 5,
             navigateAfterSeconds: new AfterSplash(),
             title: new Text(
-              'TeachMe',
+              'TEACHme',
               style: new TextStyle(
                   fontWeight: FontWeight.bold,
-                  color: Colors.blue[900],
-                  letterSpacing: 2.0,
+                  color: Colors.white,
+                  letterSpacing: 5.0,
                   fontSize: 40.0),
             ),
             gradientBackground: LinearGradient(
-              colors: [Colors.white, Colors.blue[200]],
+              colors: [Colors.greenAccent[700], Colors.greenAccent[400]],
             ),
             styleTextUnderTheLoader: new TextStyle(),
             photoSize: 100.0,
-            onClick: () => print("Flutter Egypt"),
             loaderColor: Colors.red));
   }
 }
