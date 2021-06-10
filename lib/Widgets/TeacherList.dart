@@ -6,12 +6,14 @@ import 'package:splashscreen/splashscreen.dart';
 import 'package:teachme/Widgets/StarRatingWidget.dart';
 import 'package:teachme/Screens/UpdateTeacher.dart';
 import 'package:teachme/Models/Teacher.dart';
+import 'package:teachme/Models/Rating.dart';
 import 'package:smooth_star_rating/smooth_star_rating.dart';
 
 class TeacherList extends StatelessWidget {
   const TeacherList({Key key}) : super(key: key);
 
   final String fireStoreCollectionName = "Teachers";
+  final String fireStoreCollectionNameRatings = "ratings";
 
   getAllTeachers() {
     return FirebaseFirestore.instance
@@ -19,10 +21,29 @@ class TeacherList extends StatelessWidget {
         .snapshots();
   }
 
+  getAllRatings() {
+    return FirebaseFirestore.instance
+        .collection(fireStoreCollectionNameRatings)
+        .snapshots();
+  }
+
   deleteTeacher(Teacher teacher) {
     FirebaseFirestore.instance.runTransaction((transaction) {
       transaction.delete(teacher.documentReference);
     });
+  }
+
+  addNewRate(String email, int starRating) async {
+    Rating rating = new Rating(teacherEmail: email, rating: starRating);
+    try {
+      await FirebaseFirestore.instance
+          .collection(fireStoreCollectionNameRatings)
+          .doc()
+          .set(rating.toJson());
+    } catch (e) {
+      print('Failed');
+      print(e.toString());
+    }
   }
 
   @override
@@ -51,7 +72,7 @@ class TeacherList extends StatelessWidget {
             }));
   }
 
-  _showRatingAppDialog(BuildContext context) {
+  _showRatingAppDialog(BuildContext context, String email) {
     final _ratingDialog = RatingDialog(
       ratingColor: Colors.amber,
       title: 'Rating Dialog In Flutter',
@@ -61,6 +82,8 @@ class TeacherList extends StatelessWidget {
       onSubmitted: (response) {
         print('rating: ${response.rating}, '
             'comment: ${context}');
+
+        addNewRate(email, response.rating);
 
         if (response.rating < 3.0) {
           print('response.rating: ${response.rating}');
@@ -183,7 +206,7 @@ class TeacherList extends StatelessWidget {
                   children: [
                     FlatButton(
                       onPressed: () {
-                        _showRatingAppDialog(context);
+                        _showRatingAppDialog(context, teacher.email);
                         //showStarRating();
                       },
                       child: Text('Rate Teacher'),

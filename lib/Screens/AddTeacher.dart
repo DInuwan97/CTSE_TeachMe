@@ -52,7 +52,7 @@ class _AddTeacherState extends State<AddTeacher> {
   addNewTeacher() async {
     print('Button Clicked');
     Teacher teacher = new Teacher(
-        firstName: _controllerTeacherfName.text..toString(),
+        firstName: _controllerTeacherfName.text.toString(),
         lastName: _controllerTeacherlName.text.toString(),
         email: _controllerTeacherEmail.text.toString(),
         subject: dropdownValue);

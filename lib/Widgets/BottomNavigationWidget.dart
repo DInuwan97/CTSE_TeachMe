@@ -13,10 +13,9 @@ class _BootomNavigationWidgetState extends State<BootomNavigationWidget> {
   int _selectedIndex = 0;
 
   final List<Widget> _widgetOptions = <Widget>[
-    Home(key: PageStorageKey('Page1')),
+    TeacherListScreen(key: PageStorageKey('Page1')),
     AddTeacher(key: PageStorageKey('Page2')),
-    TeacherListScreen(key: PageStorageKey('Page3')),
-    Home(key: PageStorageKey('Page4'))
+    Home(key: PageStorageKey('Page3'))
   ];
 
   void _onItemTapped(int index) {
@@ -38,16 +37,11 @@ class _BootomNavigationWidgetState extends State<BootomNavigationWidget> {
             icon: Icon(
               Icons.home,
             ),
-            label: 'Home',
+            label: 'Teachers',
           ),
           BottomNavigationBarItem(
             icon: Icon(Icons.group_add_sharp),
             label: 'Add New',
-            backgroundColor: Colors.greenAccent[400],
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.people),
-            label: 'Teachers',
             backgroundColor: Colors.greenAccent[400],
           ),
           BottomNavigationBarItem(
