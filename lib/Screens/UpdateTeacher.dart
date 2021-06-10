@@ -5,6 +5,7 @@ import 'package:teachme/Models/Teacher.dart';
 
 class UpdateTeacher extends StatefulWidget {
   final Teacher teacher;
+
   const UpdateTeacher(this.teacher, {Key key}) : super(key: key);
 
   @override
@@ -44,15 +45,20 @@ class _UpdateTeacherState extends State<UpdateTeacher> {
   }
 
   @override
-  Widget build(BuildContext context) {
-    print(widget.teacher.firstName);
-
+  void initState() {
+    super.initState();
     setState(() {
       _controllerTeacherfName.text = widget.teacher.firstName;
       _controllerTeacherlName.text = widget.teacher.lastName;
       _controllerTeacherEmail.text = widget.teacher.email;
       dropdownValue = widget.teacher.subject;
     });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    currentTeacher = widget.teacher;
+    print(widget.teacher.firstName);
 
     return Scaffold(
         appBar: AppBar(

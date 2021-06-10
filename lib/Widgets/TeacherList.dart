@@ -6,6 +6,7 @@ import 'package:splashscreen/splashscreen.dart';
 import 'package:teachme/Widgets/StarRatingWidget.dart';
 import 'package:teachme/Screens/UpdateTeacher.dart';
 import 'package:teachme/Models/Teacher.dart';
+import 'package:smooth_star_rating/smooth_star_rating.dart';
 
 class TeacherList extends StatelessWidget {
   const TeacherList({Key key}) : super(key: key);
@@ -74,6 +75,27 @@ class TeacherList extends StatelessWidget {
       barrierDismissible: true,
       builder: (context) => _ratingDialog,
     );
+  }
+
+  showStarRating() {
+    var rating = 3.0;
+
+    return Center(
+        child: SmoothStarRating(
+      rating: rating,
+      isReadOnly: false,
+      size: 80,
+      filledIconData: Icons.star,
+      halfFilledIconData: Icons.star_half,
+      defaultIconData: Icons.star_border,
+      starCount: 5,
+      allowHalfRating: true,
+      spacing: 2.0,
+      onRated: (value) {
+        print("rating value -> $value");
+        // print("rating value dd -> ${value.truncate()}");
+      },
+    ));
   }
 
   Widget buildList(BuildContext context, List<DocumentSnapshot> snapshot) {
@@ -162,6 +184,7 @@ class TeacherList extends StatelessWidget {
                     FlatButton(
                       onPressed: () {
                         _showRatingAppDialog(context);
+                        //showStarRating();
                       },
                       child: Text('Rate Teacher'),
                       color: Colors.blue[400],

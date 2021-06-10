@@ -71,6 +71,7 @@ class _AddTeacherState extends State<AddTeacher> {
       print('Success');
       print(teacher.toJson());
       successMessage();
+      postState();
     } catch (e) {
       print('Failed');
       print(teacher.toJson());
@@ -83,6 +84,14 @@ class _AddTeacherState extends State<AddTeacher> {
       updateTeacher(currentTeacher, _controllerTeacherfName.text,
           _controllerTeacherlName.text, _controllerTeacherEmail.text, "");
     }
+  }
+
+  void postState() {
+    setState(() {
+      _controllerTeacherfName.text = "";
+      _controllerTeacherlName.text = "";
+      _controllerTeacherEmail.text = "";
+    });
   }
 
   @override
@@ -282,7 +291,9 @@ class _AddTeacherState extends State<AddTeacher> {
         content: Column(),
         buttons: [
           DialogButton(
-            onPressed: () => Navigator.pop(context),
+            onPressed: () {
+              Navigator.pop(null);
+            },
             child: Text(
               "CLOSE",
               style: TextStyle(color: Colors.white, fontSize: 20),
