@@ -1,3 +1,5 @@
+import 'dart:math';
+
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:rating_dialog/rating_dialog.dart';
@@ -9,9 +11,14 @@ import 'package:teachme/Models/Teacher.dart';
 import 'package:teachme/Models/Rating.dart';
 import 'package:smooth_star_rating/smooth_star_rating.dart';
 
-class TeacherList extends StatelessWidget {
-  const TeacherList({Key key}) : super(key: key);
+class TeacherList extends StatefulWidget {
+  @override
+  _TeacherListState createState() => _TeacherListState();
 
+  const TeacherList({Key key}) : super(key: key);
+}
+
+class _TeacherListState extends State<TeacherList> {
   final String fireStoreCollectionName = "Teachers";
   final String fireStoreCollectionNameRatings = "ratings";
 
@@ -21,11 +28,42 @@ class TeacherList extends StatelessWidget {
         .snapshots();
   }
 
-  getAllRatings() {
-    return FirebaseFirestore.instance
-        .collection(fireStoreCollectionNameRatings)
-        .snapshots();
+  Future<QuerySnapshot<Map<String, dynamic>>> getAllRatings() async {
+    QuerySnapshot<Map<String, dynamic>> qs;
+
+    try {
+      qs = await FirebaseFirestore.instance
+          .collection(fireStoreCollectionNameRatings)
+          .get();
+    } catch (e) {
+      print('Ratings fetching error: ' + e.toString());
+    }
+
+    return qs;
   }
+
+  // Future<double> getSingleLectureRating(String email) async {
+  //   QuerySnapshot<Map<String, dynamic>> qs;
+  //   double rating;
+
+  //   try {
+  //     qs = await FirebaseFirestore.instance
+  //         .collection(fireStoreCollectionNameRatings)
+  //         .where('email', isEqualTo: email)
+  //         .get();
+  //     List<Rating> rlist = qs.docs
+  //         .map((r) => Rating(
+  //             id: r.id,
+  //             rating: r['rating'],
+  //             teacherEmail: r['email'],
+  //             noOfRatedTimes: r['noOfRatedTimes'],
+  //             totalRating: r['totalRating']))
+  //         .toList();
+  //     print('rating 33333333: ' + rlist[0].rating.toString());
+  //   } catch (e) {
+  //     print('Getting rating for single lecture error: ' + e.toString());
+  //   }
+  // }
 
   deleteTeacher(Teacher teacher) {
     FirebaseFirestore.instance.runTransaction((transaction) {
@@ -34,42 +72,62 @@ class TeacherList extends StatelessWidget {
   }
 
   addNewRate(String email, int starRating) async {
-    Rating rating = new Rating(teacherEmail: email, rating: starRating);
-    try {
-      await FirebaseFirestore.instance
-          .collection(fireStoreCollectionNameRatings)
-          .doc()
-          .set(rating.toJson());
-    } catch (e) {
-      print('Failed');
-      print(e.toString());
-    }
-  }
+    // check if the exists for the teacher
+    QuerySnapshot<Map<String, dynamic>> qs = await getAllRatings();
 
-  @override
-  Widget build(BuildContext context) {
-    StarRatingWidgt start = new StarRatingWidgt();
-    return Container(
-        child: StreamBuilder<QuerySnapshot>(
-            stream: getAllTeachers(),
-            builder: (context, snapshot) {
-              if (snapshot.hasData) {
-                return buildList(context, snapshot.data.docs);
-              } else {
-                return SplashScreen(
-                    seconds: 5,
-                    //navigateAfterSeconds: new AfterSplash(),
-                    gradientBackground: LinearGradient(
-                      colors: [
-                        Colors.white12,
-                        Colors.white24,
-                        Colors.green[100]
-                      ],
-                    ),
-                    styleTextUnderTheLoader: new TextStyle(),
-                    loaderColor: Colors.red);
-              }
-            }));
+    List<Rating> rlist = qs.docs
+        .map((e) => Rating(
+            rating: e['rating'],
+            teacherEmail: e['teacherEmail'],
+            id: e.id,
+            noOfRatedTimes: e['noOfRatedTimes'],
+            totalRating: e['totalRating']))
+        .toList();
+
+    List<Rating> filtered_rlist =
+        rlist.where((r) => r.teacherEmail == email).toList();
+
+    if (filtered_rlist.length >= 1) {
+      // if already exists update the rating as an average
+      Rating currrentLectureRating = filtered_rlist[0];
+
+      double average =
+          ((currrentLectureRating.totalRating / 5) + (starRating / 5)) /
+              (currrentLectureRating.noOfRatedTimes + 1);
+      // print(average);
+
+      try {
+        FirebaseFirestore.instance
+            .collection(fireStoreCollectionNameRatings)
+            .doc(currrentLectureRating.id)
+            .set({
+          'rating': average,
+          'teacherEmail': email,
+          'noOfRatedTimes': currrentLectureRating.noOfRatedTimes + 1,
+          'totalRating':
+              (currrentLectureRating.totalRating + starRating).toDouble()
+        });
+      } catch (e) {
+        print('Failed updating rating!');
+        print(e.toString());
+      }
+    } else {
+      // if not, add the rating
+      try {
+        await FirebaseFirestore.instance
+            .collection(fireStoreCollectionNameRatings)
+            .doc()
+            .set({
+          "teacherEmail": email,
+          "rating": starRating / 5,
+          "noOfRatedTimes": 1,
+          "totalRating": starRating.toDouble()
+        });
+      } catch (e) {
+        print('Failed adding new rating!');
+        print(e.toString());
+      }
+    }
   }
 
   _showRatingAppDialog(BuildContext context, String email) {
@@ -101,7 +159,7 @@ class TeacherList extends StatelessWidget {
   }
 
   showStarRating() {
-    var rating = 3.0;
+    var rating = 1.0;
 
     return Center(
         child: SmoothStarRating(
@@ -129,6 +187,7 @@ class TeacherList extends StatelessWidget {
 
   Widget listItemBuild(BuildContext context, DocumentSnapshot data) {
     final teacher = Teacher.fromSnapshot(data);
+    int rating = new Random().nextInt(5);
 
     return Stack(children: <Widget>[
       Container(
@@ -200,7 +259,8 @@ class TeacherList extends StatelessWidget {
                     data: IconThemeData(color: Colors.yellow[700], size: 18),
                     child: Row(
                         children: List.generate(5, (index) {
-                      return Icon(index < 4 ? Icons.star : Icons.star_border);
+                      return Icon(
+                          index < rating ? Icons.star : Icons.star_border);
                     }))),
                 Row(
                   children: [
@@ -273,5 +333,32 @@ class TeacherList extends StatelessWidget {
         )
       ],
     ).show();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    StarRatingWidgt start = new StarRatingWidgt();
+
+    return Container(
+        child: StreamBuilder<QuerySnapshot>(
+            stream: getAllTeachers(),
+            builder: (context, snapshot) {
+              if (snapshot.hasData) {
+                return buildList(context, snapshot.data.docs);
+              } else {
+                return SplashScreen(
+                    seconds: 5,
+                    //navigateAfterSeconds: new AfterSplash(),
+                    gradientBackground: LinearGradient(
+                      colors: [
+                        Colors.white12,
+                        Colors.white24,
+                        Colors.green[100]
+                      ],
+                    ),
+                    styleTextUnderTheLoader: new TextStyle(),
+                    loaderColor: Colors.red);
+              }
+            }));
   }
 }

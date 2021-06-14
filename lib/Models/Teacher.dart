@@ -5,10 +5,16 @@ class Teacher {
   String lastName;
   String email;
   String subject;
+  double rating;
 
   DocumentReference documentReference;
 
-  Teacher({this.firstName, this.lastName, this.email, this.subject});
+  Teacher(
+      {this.firstName,
+      this.lastName,
+      this.email,
+      this.subject,
+      this.rating = 0});
 
   Teacher.fromMap(Map<String, dynamic> map, {this.documentReference}) {
     firstName = map["firstName"];
