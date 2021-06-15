@@ -1,7 +1,7 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:rflutter_alert/rflutter_alert.dart';
 import 'package:teachme/Models/Teacher.dart';
+import 'package:teachme/services/FirebaseController.dart';
 
 class UpdateTeacher extends StatefulWidget {
   final Teacher teacher;
@@ -17,27 +17,17 @@ class _UpdateTeacherState extends State<UpdateTeacher> {
   final TextEditingController _controllerTeacherfName = TextEditingController();
   final TextEditingController _controllerTeacherlName = TextEditingController();
   final TextEditingController _controllerTeacherEmail = TextEditingController();
-  final TextEditingController _controlllerTeacherSubject =
-      TextEditingController();
 
-  // final FirebaseFirestore firestore = FirebaseFirestore.instance;
-  bool isEditing;
-  bool textFirldVisibility;
+  //initialize the cloud firestore instance
+  FirebaseController _firebaseController = new FirebaseController();
 
-  String fireStoreCollectionName = "Teachers";
   Teacher currentTeacher;
 
   updateTeacher(Teacher teacher, String firstName, String lastName,
       String email, String subject) {
     try {
-      FirebaseFirestore.instance.runTransaction((transaction) async {
-        await transaction.update(teacher.documentReference, {
-          'firstName': firstName,
-          'lastName': lastName,
-          'email': email,
-          'subject': subject
-        });
-      });
+      _firebaseController.updateTeacher(
+          teacher, firstName, lastName, email, subject);
       successMessage();
     } catch (e) {
       print('Fail to update');

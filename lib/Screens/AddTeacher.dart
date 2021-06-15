@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:rflutter_alert/rflutter_alert.dart';
 import 'package:teachme/Models/Teacher.dart';
+import 'package:teachme/services/FirebaseController.dart';
 
 class AddTeacher extends StatefulWidget {
   const AddTeacher({Key key}) : super(key: key);
@@ -11,45 +12,18 @@ class AddTeacher extends StatefulWidget {
 }
 
 class _AddTeacherState extends State<AddTeacher> {
+  //initialize the subject dropdown
   String dropdownValue = 'Combined Mathematics';
+
+  //initializing the entry fields
   final TextEditingController _controllerTeacherfName = TextEditingController();
   final TextEditingController _controllerTeacherlName = TextEditingController();
   final TextEditingController _controllerTeacherEmail = TextEditingController();
-  final TextEditingController _controlllerTeacherSubject =
-      TextEditingController();
 
-  // final FirebaseFirestore firestore = FirebaseFirestore.instance;
-  bool isEditing;
-  bool textFirldVisibility;
+  //initialize the cloud firestore instance
+  FirebaseController _firebaseController = new FirebaseController();
 
-  String fireStoreCollectionName = "Teachers";
-  Teacher currentTeacher;
-
-  updateTeacher(Teacher teacher, String firstName, String lastName,
-      String email, String subject) {
-    try {
-      FirebaseFirestore.instance.runTransaction((transaction) async {
-        await transaction.update(teacher.documentReference, {
-          'firstName': firstName,
-          'lastName': lastName,
-          'email': email,
-          'subject': subject
-        });
-      });
-    } catch (e) {
-      print('Failed');
-      print(teacher.toJson());
-      print(e.toString());
-    }
-  }
-
-  getAllTeachers() {
-    return FirebaseFirestore.instance
-        .collection(fireStoreCollectionName)
-        .snapshots();
-  }
-
-  addNewTeacher() async {
+  addNewTeacher() {
     print('Button Clicked');
     Teacher teacher = new Teacher(
         firstName: _controllerTeacherfName.text.toString(),
@@ -58,15 +32,7 @@ class _AddTeacherState extends State<AddTeacher> {
         subject: dropdownValue);
 
     try {
-      // await firestore
-      //     .collection(fireStoreCollectionName)
-      //     .doc()
-      //     .set(teacher.toJson());
-      // FirebaseFirestore.instance.runTransaction((transaction) async {
-      await FirebaseFirestore.instance
-          .collection(fireStoreCollectionName)
-          .doc()
-          .set(teacher.toJson());
+      _firebaseController.addNew(teacher);
 
       print('Success');
       print(teacher.toJson());
@@ -76,13 +42,6 @@ class _AddTeacherState extends State<AddTeacher> {
       print('Failed');
       print(teacher.toJson());
       print(e.toString());
-    }
-  }
-
-  updateIsEditing() {
-    if (isEditing) {
-      updateTeacher(currentTeacher, _controllerTeacherfName.text,
-          _controllerTeacherlName.text, _controllerTeacherEmail.text, "");
     }
   }
 

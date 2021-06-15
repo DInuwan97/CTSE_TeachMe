@@ -8,8 +8,7 @@ import 'package:splashscreen/splashscreen.dart';
 import 'package:teachme/Widgets/StarRatingWidget.dart';
 import 'package:teachme/Screens/UpdateTeacher.dart';
 import 'package:teachme/Models/Teacher.dart';
-import 'package:teachme/Models/Rating.dart';
-import 'package:smooth_star_rating/smooth_star_rating.dart';
+import 'package:teachme/services/FirebaseController.dart';
 
 class TeacherList extends StatefulWidget {
   @override
@@ -19,165 +18,9 @@ class TeacherList extends StatefulWidget {
 }
 
 class _TeacherListState extends State<TeacherList> {
+  FirebaseController _firebaseController = new FirebaseController();
   final String fireStoreCollectionName = "Teachers";
   final String fireStoreCollectionNameRatings = "ratings";
-
-  getAllTeachers() {
-    return FirebaseFirestore.instance
-        .collection(fireStoreCollectionName)
-        .snapshots();
-  }
-
-  Future<QuerySnapshot<Map<String, dynamic>>> getAllRatings() async {
-    QuerySnapshot<Map<String, dynamic>> qs;
-
-    try {
-      qs = await FirebaseFirestore.instance
-          .collection(fireStoreCollectionNameRatings)
-          .get();
-    } catch (e) {
-      print('Ratings fetching error: ' + e.toString());
-    }
-
-    return qs;
-  }
-
-  // Future<double> getSingleLectureRating(String email) async {
-  //   QuerySnapshot<Map<String, dynamic>> qs;
-  //   double rating;
-
-  //   try {
-  //     qs = await FirebaseFirestore.instance
-  //         .collection(fireStoreCollectionNameRatings)
-  //         .where('email', isEqualTo: email)
-  //         .get();
-  //     List<Rating> rlist = qs.docs
-  //         .map((r) => Rating(
-  //             id: r.id,
-  //             rating: r['rating'],
-  //             teacherEmail: r['email'],
-  //             noOfRatedTimes: r['noOfRatedTimes'],
-  //             totalRating: r['totalRating']))
-  //         .toList();
-  //     print('rating 33333333: ' + rlist[0].rating.toString());
-  //   } catch (e) {
-  //     print('Getting rating for single lecture error: ' + e.toString());
-  //   }
-  // }
-
-  deleteTeacher(Teacher teacher) {
-    FirebaseFirestore.instance.runTransaction((transaction) {
-      transaction.delete(teacher.documentReference);
-    });
-  }
-
-  addNewRate(String email, int starRating) async {
-    // check if the exists for the teacher
-    QuerySnapshot<Map<String, dynamic>> qs = await getAllRatings();
-
-    List<Rating> rlist = qs.docs
-        .map((e) => Rating(
-            rating: e['rating'],
-            teacherEmail: e['teacherEmail'],
-            id: e.id,
-            noOfRatedTimes: e['noOfRatedTimes'],
-            totalRating: e['totalRating']))
-        .toList();
-
-    List<Rating> filtered_rlist =
-        rlist.where((r) => r.teacherEmail == email).toList();
-
-    if (filtered_rlist.length >= 1) {
-      // if already exists update the rating as an average
-      Rating currrentLectureRating = filtered_rlist[0];
-
-      double average =
-          ((currrentLectureRating.totalRating / 5) + (starRating / 5)) /
-              (currrentLectureRating.noOfRatedTimes + 1);
-      // print(average);
-
-      try {
-        FirebaseFirestore.instance
-            .collection(fireStoreCollectionNameRatings)
-            .doc(currrentLectureRating.id)
-            .set({
-          'rating': average,
-          'teacherEmail': email,
-          'noOfRatedTimes': currrentLectureRating.noOfRatedTimes + 1,
-          'totalRating':
-              (currrentLectureRating.totalRating + starRating).toDouble()
-        });
-      } catch (e) {
-        print('Failed updating rating!');
-        print(e.toString());
-      }
-    } else {
-      // if not, add the rating
-      try {
-        await FirebaseFirestore.instance
-            .collection(fireStoreCollectionNameRatings)
-            .doc()
-            .set({
-          "teacherEmail": email,
-          "rating": starRating / 5,
-          "noOfRatedTimes": 1,
-          "totalRating": starRating.toDouble()
-        });
-      } catch (e) {
-        print('Failed adding new rating!');
-        print(e.toString());
-      }
-    }
-  }
-
-  _showRatingAppDialog(BuildContext context, String email) {
-    final _ratingDialog = RatingDialog(
-      ratingColor: Colors.amber,
-      title: 'Rating Dialog In Flutter',
-      message: '',
-      submitButton: 'Submit',
-      onCancelled: () => print('cancelled'),
-      onSubmitted: (response) {
-        print('rating: ${response.rating}, '
-            'comment: ${context}');
-
-        addNewRate(email, response.rating);
-
-        if (response.rating < 3.0) {
-          print('response.rating: ${response.rating}');
-        } else {
-          Container();
-        }
-      },
-    );
-
-    showDialog(
-      context: context,
-      barrierDismissible: true,
-      builder: (context) => _ratingDialog,
-    );
-  }
-
-  showStarRating() {
-    var rating = 1.0;
-
-    return Center(
-        child: SmoothStarRating(
-      rating: rating,
-      isReadOnly: false,
-      size: 80,
-      filledIconData: Icons.star,
-      halfFilledIconData: Icons.star_half,
-      defaultIconData: Icons.star_border,
-      starCount: 5,
-      allowHalfRating: true,
-      spacing: 2.0,
-      onRated: (value) {
-        print("rating value -> $value");
-        // print("rating value dd -> ${value.truncate()}");
-      },
-    ));
-  }
 
   Widget buildList(BuildContext context, List<DocumentSnapshot> snapshot) {
     return ListView(
@@ -228,13 +71,6 @@ class _TeacherListState extends State<TeacherList> {
                     ),
                     Column(
                       children: <Widget>[
-                        // Text('\LKR ${1500}',
-                        //     style: TextStyle(
-                        //         fontSize: 20.0,
-                        //         fontWeight: FontWeight.w600)),
-                        // Text('per pax',
-                        //     style: TextStyle(color: Colors.grey))
-
                         IconButton(
                           icon: Icon(
                             Icons.edit,
@@ -319,7 +155,7 @@ class _TeacherListState extends State<TeacherList> {
             style: TextStyle(color: Colors.white, fontSize: 20),
           ),
           onPressed: () {
-            deleteTeacher(teacher);
+            _firebaseController.deleteTeacher(teacher);
           },
           width: 120,
         ),
@@ -341,7 +177,7 @@ class _TeacherListState extends State<TeacherList> {
 
     return Container(
         child: StreamBuilder<QuerySnapshot>(
-            stream: getAllTeachers(),
+            stream: _firebaseController.getAllTeachers(),
             builder: (context, snapshot) {
               if (snapshot.hasData) {
                 return buildList(context, snapshot.data.docs);
@@ -360,5 +196,33 @@ class _TeacherListState extends State<TeacherList> {
                     loaderColor: Colors.red);
               }
             }));
+  }
+
+  _showRatingAppDialog(BuildContext context, String email) {
+    final _ratingDialog = RatingDialog(
+      ratingColor: Colors.amber,
+      title: 'Rating Dialog In Flutter',
+      message: '',
+      submitButton: 'Submit',
+      onCancelled: () => print('cancelled'),
+      onSubmitted: (response) {
+        print('rating: ${response.rating}, '
+            'comment: ${context}');
+
+        _firebaseController.addNewRate(email, response.rating);
+
+        if (response.rating < 3.0) {
+          print('response.rating: ${response.rating}');
+        } else {
+          Container();
+        }
+      },
+    );
+
+    showDialog(
+      context: context,
+      barrierDismissible: true,
+      builder: (context) => _ratingDialog,
+    );
   }
 }

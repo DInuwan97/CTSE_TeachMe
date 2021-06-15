@@ -3,7 +3,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 class Rating {
   String id;
   String teacherEmail;
-  double rating;
+  int rating;
   double totalRating;
   int noOfRatedTimes;
 
