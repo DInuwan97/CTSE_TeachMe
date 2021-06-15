@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:rflutter_alert/rflutter_alert.dart';
+import 'package:teachme/Models/User.dart';
 import 'package:teachme/Screens/SignIn.dart';
 import 'package:teachme/Widgets/ClipArtContainer.dart';
+import 'package:teachme/services/FirebaseAuthController.dart';
 
 class SignUpPage extends StatefulWidget {
   SignUpPage({Key key, this.title}) : super(key: key);
@@ -12,7 +15,42 @@ class SignUpPage extends StatefulWidget {
 }
 
 class _SignUpPageState extends State<SignUpPage> {
-  Widget _entryField(String title, IconData icon, {bool isPassword = false}) {
+  //initializing the entry fields
+  final TextEditingController _controllerUserName = TextEditingController();
+  final TextEditingController _controllerUserEmail = TextEditingController();
+  final TextEditingController _controllerUserPassword = TextEditingController();
+
+  //initialize the cloud firestore instance
+  FirebaseAuthController _firebaseAuthController = new FirebaseAuthController();
+
+  registerUser() {
+    print('Button Clicked');
+    User user = new User(
+        name: _controllerUserName.text.toString(),
+        email: _controllerUserEmail.text.toString(),
+        password: _controllerUserPassword.text.toString(),
+        role: '');
+
+    try {
+      _firebaseAuthController.addNew(user);
+      successMessage();
+      postState();
+    } catch (e) {
+      print('Failed');
+      print(e.toString());
+    }
+  }
+
+  void postState() {
+    setState(() {
+      _controllerUserName.text = "";
+      _controllerUserPassword.text = "";
+      _controllerUserEmail.text = "";
+    });
+  }
+
+  Widget _entryFieldName(String title, IconData icon,
+      {bool isPassword = false}) {
     return Container(
       margin: EdgeInsets.symmetric(vertical: 10),
       child: Column(
@@ -26,6 +64,65 @@ class _SignUpPageState extends State<SignUpPage> {
             height: 10,
           ),
           TextField(
+              controller: _controllerUserName,
+              obscureText: isPassword,
+              decoration: InputDecoration(
+                  prefixIcon: Icon(icon),
+                  prefixIconConstraints:
+                      BoxConstraints(minHeight: 32, minWidth: 42),
+                  border: InputBorder.none,
+                  fillColor: Color(0xfff3f3f4),
+                  filled: true))
+        ],
+      ),
+    );
+  }
+
+  Widget _entryFieldEmail(String title, IconData icon,
+      {bool isPassword = false}) {
+    return Container(
+      margin: EdgeInsets.symmetric(vertical: 10),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: <Widget>[
+          Text(
+            title,
+            style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
+          ),
+          SizedBox(
+            height: 10,
+          ),
+          TextField(
+              controller: _controllerUserEmail,
+              obscureText: isPassword,
+              decoration: InputDecoration(
+                  prefixIcon: Icon(icon),
+                  prefixIconConstraints:
+                      BoxConstraints(minHeight: 32, minWidth: 42),
+                  border: InputBorder.none,
+                  fillColor: Color(0xfff3f3f4),
+                  filled: true))
+        ],
+      ),
+    );
+  }
+
+  Widget _entryFieldPassword(String title, IconData icon,
+      {bool isPassword = false}) {
+    return Container(
+      margin: EdgeInsets.symmetric(vertical: 10),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: <Widget>[
+          Text(
+            title,
+            style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
+          ),
+          SizedBox(
+            height: 10,
+          ),
+          TextField(
+              controller: _controllerUserPassword,
               obscureText: isPassword,
               decoration: InputDecoration(
                   prefixIcon: Icon(icon),
@@ -40,26 +137,31 @@ class _SignUpPageState extends State<SignUpPage> {
   }
 
   Widget _submitButton() {
-    return Container(
-      width: MediaQuery.of(context).size.width,
-      padding: EdgeInsets.symmetric(vertical: 15),
-      alignment: Alignment.center,
-      decoration: BoxDecoration(
-          borderRadius: BorderRadius.all(Radius.circular(5)),
-          boxShadow: <BoxShadow>[
-            BoxShadow(
-                color: Colors.grey.shade200,
-                offset: Offset(2, 4),
-                blurRadius: 5,
-                spreadRadius: 2)
-          ],
-          gradient: LinearGradient(
-              begin: Alignment.centerLeft,
-              end: Alignment.centerRight,
-              colors: [Colors.greenAccent, Colors.greenAccent[400]])),
-      child: Text(
-        'Register Now',
-        style: TextStyle(fontSize: 20, color: Colors.white),
+    return InkWell(
+      onTap: () {
+        registerUser();
+      },
+      child: Container(
+        width: MediaQuery.of(context).size.width,
+        padding: EdgeInsets.symmetric(vertical: 15),
+        alignment: Alignment.center,
+        decoration: BoxDecoration(
+            borderRadius: BorderRadius.all(Radius.circular(5)),
+            boxShadow: <BoxShadow>[
+              BoxShadow(
+                  color: Colors.grey.shade200,
+                  offset: Offset(2, 4),
+                  blurRadius: 5,
+                  spreadRadius: 2)
+            ],
+            gradient: LinearGradient(
+                begin: Alignment.centerLeft,
+                end: Alignment.centerRight,
+                colors: [Colors.greenAccent, Colors.greenAccent[400]])),
+        child: Text(
+          'Register Now',
+          style: TextStyle(fontSize: 20, color: Colors.white),
+        ),
       ),
     );
   }
@@ -108,9 +210,9 @@ class _SignUpPageState extends State<SignUpPage> {
   Widget _emailPasswordWidget() {
     return Column(
       children: <Widget>[
-        _entryField("Name", Icons.person),
-        _entryField("Email", Icons.email),
-        _entryField("Password", Icons.lock, isPassword: true),
+        _entryFieldName("Name", Icons.person),
+        _entryFieldEmail("Email", Icons.email),
+        _entryFieldPassword("Password", Icons.lock, isPassword: true),
       ],
     );
   }
@@ -177,5 +279,24 @@ class _SignUpPageState extends State<SignUpPage> {
         ),
       ),
     );
+  }
+
+  successMessage() {
+    return Alert(
+        context: context,
+        title: "Successfully Registered",
+        type: AlertType.success,
+        content: Column(),
+        buttons: [
+          DialogButton(
+            onPressed: () {
+              Navigator.pop(null);
+            },
+            child: Text(
+              "CLOSE",
+              style: TextStyle(color: Colors.white, fontSize: 20),
+            ),
+          )
+        ]).show();
   }
 }

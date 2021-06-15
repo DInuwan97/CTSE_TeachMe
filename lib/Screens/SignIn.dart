@@ -1,7 +1,10 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
+import 'package:rflutter_alert/rflutter_alert.dart';
 import 'package:teachme/Screens/HomeScreen.dart';
 import 'package:teachme/Screens/SignUp.dart';
 import 'package:teachme/Widgets/ClipArtContainer.dart';
+import 'package:teachme/services/FirebaseAuthController.dart';
 
 class LoginPage extends StatefulWidget {
   LoginPage({Key key, this.title}) : super(key: key);
@@ -15,6 +18,9 @@ class LoginPage extends StatefulWidget {
 class _LoginPageState extends State<LoginPage> {
   final TextEditingController _controllerEmail = TextEditingController();
   final TextEditingController _controllerPassword = TextEditingController();
+
+//initialize the cloud firestore instance
+  FirebaseAuthController _firebaseAuthController = new FirebaseAuthController();
 
   Widget _backButton() {
     return InkWell(
@@ -302,5 +308,38 @@ class _LoginPageState extends State<LoginPage> {
         ],
       ),
     ));
+  }
+
+  getSignedUserData(BuildContext context) {
+    return new StreamBuilder(
+        stream: _firebaseAuthController.signin(),
+        builder: (context, snapshot) {
+          if (!snapshot.hasData) {
+            print('true status');
+            return errorMessage();
+          } else {
+            print('false status');
+            return HomeScreen();
+          }
+        });
+  }
+
+  errorMessage() {
+    return Alert(
+        context: context,
+        title: "Invalid Credentials",
+        type: AlertType.error,
+        content: Column(),
+        buttons: [
+          DialogButton(
+            onPressed: () {
+              Navigator.pop(null);
+            },
+            child: Text(
+              "CLOSE",
+              style: TextStyle(color: Colors.white, fontSize: 20),
+            ),
+          )
+        ]).show();
   }
 }
